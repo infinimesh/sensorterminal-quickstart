@@ -1,19 +1,11 @@
 /*
  * Infinite Devices Sensor Terminal QuickStart
- * 
- * You will need to install these libraries using the library manager:
- * Seeed_Arduino_rpcWiFi
- * Seeed_Arduino_rpcUnified
- * Seeed_Arduino_mbedtls
- * Seeed_Arduino_FS
- * Seeed_Arduino_SFUD
- * SafeString
  */
 
-#include <rpcWiFi.h>
-#include <WiFiUdp.h>
-#include <millisDelay.h>
-#include <RTC_SAMD51.h>
+#include "rpcWiFi.h"
+#include "WiFiUdp.h"
+#include "millisDelay.h"
+#include "RTC_SAMD51.h"
 
 /*
  * WiFi Credentials for the hackathon. Change for a different network
