@@ -22,6 +22,6 @@ Together with your Sensor-Terminal, you have received a login for the Infinimesh
 
     bash create-certs.sh device
 
-to generate device.crt and device.key.
+to generate device.crt and device.key. Login to [Infinimesh](https://console.infinimesh.app/), click on the + button, give the device a name (e.g. "Terminal_40"), select your namespace, set the device to enabled and upload the device.crt file. (The device.key file is the private key, don't give it away!) Click submit and the device is created and given an id (hex number like 0x59). 
 
 Happy hacking!
