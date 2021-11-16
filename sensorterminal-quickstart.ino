@@ -2,12 +2,15 @@
  *  Infinite Devices Sensor Terminal QuickStart
  */
 
-#include "rpcWiFi.h"     // WiFi library
-#include "WiFiUdp.h"     // UDP library for NTP
-#include "millisDelay.h" // Non-blocking delay
-#include "RTC_SAMD51.h"  // Real time clock library
-#include "TFT_eSPI.h"    // TFT library
-#include "Free_Fonts.h"  // Screen fonts
+#include "rpcWiFi.h"          // WiFi library
+#include "WiFiUdp.h"          // UDP library for NTP
+#include "WiFiClientSecure.h" // TLS library
+#include "PubSubClient.h"     // MQTT library   
+#include "millisDelay.h"      // Non-blocking delay
+#include "RTC_SAMD51.h"       // Real time clock library
+#include "TFT_eSPI.h"         // TFT library
+#include "Free_Fonts.h"       // Screen fonts
+#include "LIS3DHTR.h"         // Accelerometer
 
 /*
  *  WiFi Credentials for the hackathon. Change for a different network.
@@ -17,25 +20,33 @@ const char ssid[] = "IoTHackathon";
 const char password[] = "IwantInfinimesh!";
 
 /* 
- *  
+ *  MQTT settings
  */
+
+const char *ID = "0x59";              // Name of our device, must be unique
+const char *TOPIC = "data";           // Topic to subcribe to
+const char *server = "192.168.1.154"; // Server address
+
 
 TFT_eSPI tft;
 
-millisDelay updateDelay; // the update delay object. used for ntp periodic update.
-millisDelay loopDelay;
+LIS3DHTR<TwoWire> lis;
+
+millisDelay updateDelay;                // The update delay object used for ntp periodic update.
+millisDelay loopDelay;                  // This timer is to redraw the screen only once per second.
  
-unsigned int localPort = 2390;      // local port to listen for UDP packets
-char timeServer[] = "de.pool.ntp.org"; // NTP server
+unsigned int localPort = 2390;          // local port to listen for UDP packets
+char timeServer[] = "de.pool.ntp.org";  // NTP server
  
-const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
-byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
+const int NTP_PACKET_SIZE = 48;         // NTP time stamp is in the first 48 bytes of the message
+byte packetBuffer[NTP_PACKET_SIZE];     //buffer to hold incoming and outgoing packets
  
 // declare a time object
 DateTime now;
  
 // define WiFI client
 WiFiClient client;
+PubSubClient mqtt(client);
  
 //The udp library class
 WiFiUDP udp;
@@ -49,6 +60,9 @@ RTC_SAMD51 rtc;
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 void setup() {
+    lis.setOutputDataRate(LIS3DHTR_DATARATE_1HZ); //Data output rate
+    lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g
+  
     Serial.begin(115200);
     while(!Serial); // Wait to open Serial Monitor
     Serial.printf("RTL8720 Firmware Version: %s\n\n", rpc_system_version());
@@ -85,15 +99,19 @@ void setup() {
     now = rtc.now();
     Serial.print("Adjusted RTC (boot) time is: ");
     Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
+
+    mqtt.setServer(server, 1883);
+    mqtt.connect(ID);
  
     // start millisdelays timers as required, adjust to suit requirements
     updateDelay.start(60 * 60 * 1000); // update time via ntp every hr
-    loopDelay.start(1000); // Run the loop every 
+    loopDelay.start(1000); // Draw the display every second
     tft.begin();
     tft.setRotation(3);
 }
  
 void loop() {
+  float x_values, y_values, z_values;
  
     if (updateDelay.justFinished()) {
         updateDelay.repeat();
@@ -113,13 +131,19 @@ void loop() {
             Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
         }
     }
+    
     if (loopDelay.justFinished()) {
       loopDelay.restart();
       tft.fillScreen(TFT_BLACK);
       tft.setFreeFont(FM24);
       now = rtc.now();
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_DATE), 0, 0);
-      tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 0, 33);
+      tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 57, 37);
+      x_values = lis.getAccelerationX();
+      y_values = lis.getAccelerationY();
+      z_values = lis.getAccelerationZ();
+      String data="{\"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";
+      mqtt.publish(TOPIC, data.c_str());
     }
 }
  
