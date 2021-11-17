@@ -32,4 +32,8 @@ As you cannot directly connect to Infinimesh from the sensor terminal yet (group
 
 ![](nodered.png)
 
+Change the MQTT settings in your sketch to your Node-RED, uncomment the two blocks saying *UNCOMMENT HERE TO CONNECT TO MQTT SERVER* and hit play, you should be sending your light value into Infinimesh!
+
 Happy hacking!
+
+![](pinout.png)

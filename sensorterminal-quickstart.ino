@@ -73,7 +73,7 @@ void setup() {
     pinMode(WIO_LIGHT, INPUT);
     
     Serial.begin(115200);
-    while(!Serial); // Wait to open Serial Monitor
+    //while(!Serial); // Wait to open Serial Monitor
     Serial.printf("RTL8720 Firmware Version: %s\n\n", rpc_system_version());
 
     // setup network before rtc check 
@@ -109,11 +109,11 @@ void setup() {
     Serial.print("Adjusted RTC (boot) time is: ");
     Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
 
-    /* UNCOMMENT HERE TO CONNECT TO MQTT SERVER
+    
 	mqtt.setServer(server, 1883);
     mqtt.connect(ID);
     Serial.println("Connected to MQTT broker.");
-    */
+    
     // start millisdelays timers as required, adjust to suit requirements
     updateDelay.start(60 * 60 * 1000); // update time via ntp every hr
     loopDelay.start(1000); // Draw the display every second
@@ -148,7 +148,12 @@ void loop() {
       tft.fillScreen(TFT_BLACK);
       tft.setFreeFont(FM24);
       now = rtc.now();
-      int light = analogRead(WIO_LIGHT);
+      int light1 = analogRead(WIO_LIGHT);
+      int light2 = analogRead(WIO_LIGHT);
+      int light3 = analogRead(WIO_LIGHT);
+      int light4 = analogRead(WIO_LIGHT);
+      int light5 = analogRead(WIO_LIGHT);
+      int light = light1 + light2 + light3 + light4 + light5;
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_DATE), 0, 0);
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 57, 37);
       tft.drawString("Light: " + String(light), 0, 74);
@@ -156,10 +161,9 @@ void loop() {
       y_values = lis.getAccelerationY();
       z_values = lis.getAccelerationZ();
       String data="{\"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";*/
-      /* UNCOMMENT HERE TO CONNECT TO MQTT SERVER
+      
 	  String data = "{\"light\": " + String(light) + "}";
       mqtt.publish(TOPIC, data.c_str());
-	  */
     }
 }
  
