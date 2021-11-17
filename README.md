@@ -28,6 +28,8 @@ Together with your Sensor-Terminal, you have received a login for the Infinimesh
 
 to generate device.crt and device.key. Login to [Infinimesh](https://console.infinimesh.app/), click on the + button, give the device a name (e.g. "Terminal_40"), select your namespace, set the device to enabled and upload the device.crt file. (The device.key file is the private key, don't give it away!) Click submit and the device is created and given an id (hex number like 0x59). 
 
+As you cannot directly connect to Infinimesh from the sensor terminal yet (group 3 will be working on that), you will need to install [Node-RED](https://nodered.org/#get-started) to receive the MQTT messages from the Sensor-Terminal and send them on to Infinimesh. Here's a working setup, change the device ID to yours:
 
+![](nodered.png)
 
 Happy hacking!
