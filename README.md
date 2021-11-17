@@ -14,7 +14,11 @@ Next, install and run [Arduino](https://www.arduino.cc/en/software). In Preferen
 	
 and install "Seeed SAMD Boards". Copy the content of [library-package](library-package) in the libraries folder of your Arduino folder (in Documents or "My Documents").
 
-Open [sensorterminal-quickstart.ino](sensorterminal-quickstart.ino) from this repo. Set all parameters in Tools according to this screenshot (serial port might be different, or course) and hit play. Your Sensor-Terminal should show the time after getting it from the Internet. For more verbose debug output, activate the Serial Monitor.
+Open [sensorterminal-quickstart.ino](sensorterminal-quickstart.ino) from this repo. Set all parameters in Tools according to this screenshot (serial port might be different, or course) and hit play.
+
+![](arduinosettings.png)
+
+Your Sensor-Terminal should show the time after getting it from the Internet. For more verbose debug output, activate the Serial Monitor.
 
 ## Infinimesh
 
@@ -23,5 +27,7 @@ Together with your Sensor-Terminal, you have received a login for the Infinimesh
     bash create-certs.sh device
 
 to generate device.crt and device.key. Login to [Infinimesh](https://console.infinimesh.app/), click on the + button, give the device a name (e.g. "Terminal_40"), select your namespace, set the device to enabled and upload the device.crt file. (The device.key file is the private key, don't give it away!) Click submit and the device is created and given an id (hex number like 0x59). 
+
+
 
 Happy hacking!
