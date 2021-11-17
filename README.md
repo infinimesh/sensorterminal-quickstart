@@ -37,3 +37,4 @@ Change the MQTT settings in your sketch to your Node-RED, uncomment the two bloc
 Happy hacking!
 
 ![](pinout.jpeg)
+![](pinout2.jpeg)
