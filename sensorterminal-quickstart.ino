@@ -10,7 +10,8 @@
 #include "RTC_SAMD51.h"       // Real time clock library
 #include "TFT_eSPI.h"         // TFT library
 #include "Free_Fonts.h"       // Screen fonts
-#include "LIS3DHTR.h"         // Accelerometer
+//#include "LIS3DHTR.h"         // Accelerometer
+//#include "Wire.h"
 
 /*
  *  WiFi Credentials for the hackathon. Change for a different network.
@@ -30,7 +31,7 @@ const char *server = "192.168.1.154"; // Server address
 
 TFT_eSPI tft;
 
-LIS3DHTR<TwoWire> lis;
+//LIS3DHTR<TwoWire> lis;
 
 millisDelay updateDelay;                // The update delay object used for ntp periodic update.
 millisDelay loopDelay;                  // This timer is to redraw the screen only once per second.
@@ -60,9 +61,17 @@ RTC_SAMD51 rtc;
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 void setup() {
+    /*lis.begin(Wire1);
+ 
+    if (!lis) {
+      Serial.println("ERROR initializing accelerometer!");
+      while(1);
+    }
     lis.setOutputDataRate(LIS3DHTR_DATARATE_1HZ); //Data output rate
-    lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g
-  
+    lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g */
+    
+    pinMode(WIO_LIGHT, INPUT);
+    
     Serial.begin(115200);
     while(!Serial); // Wait to open Serial Monitor
     Serial.printf("RTL8720 Firmware Version: %s\n\n", rpc_system_version());
@@ -102,6 +111,7 @@ void setup() {
 
     mqtt.setServer(server, 1883);
     mqtt.connect(ID);
+    Serial.println("Connected to MQTT broker.");
  
     // start millisdelays timers as required, adjust to suit requirements
     updateDelay.start(60 * 60 * 1000); // update time via ntp every hr
@@ -137,12 +147,15 @@ void loop() {
       tft.fillScreen(TFT_BLACK);
       tft.setFreeFont(FM24);
       now = rtc.now();
+      int light = analogRead(WIO_LIGHT);
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_DATE), 0, 0);
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 57, 37);
-      x_values = lis.getAccelerationX();
+      tft.drawString("Light: " + String(light), 0, 74);
+      /*x_values = lis.getAccelerationX();
       y_values = lis.getAccelerationY();
       z_values = lis.getAccelerationZ();
-      String data="{\"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";
+      String data="{\"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";*/
+      String data = "{\"light\": " + String(light) + "}";
       mqtt.publish(TOPIC, data.c_str());
     }
 }
