@@ -109,10 +109,11 @@ void setup() {
     Serial.print("Adjusted RTC (boot) time is: ");
     Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
 
-    mqtt.setServer(server, 1883);
+    /* UNCOMMENT HERE TO CONNECT TO MQTT SERVER
+	mqtt.setServer(server, 1883);
     mqtt.connect(ID);
     Serial.println("Connected to MQTT broker.");
- 
+    */
     // start millisdelays timers as required, adjust to suit requirements
     updateDelay.start(60 * 60 * 1000); // update time via ntp every hr
     loopDelay.start(1000); // Draw the display every second
@@ -155,8 +156,10 @@ void loop() {
       y_values = lis.getAccelerationY();
       z_values = lis.getAccelerationZ();
       String data="{\"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";*/
-      String data = "{\"light\": " + String(light) + "}";
+      /* UNCOMMENT HERE TO CONNECT TO MQTT SERVER
+	  String data = "{\"light\": " + String(light) + "}";
       mqtt.publish(TOPIC, data.c_str());
+	  */
     }
 }
  
