@@ -11,7 +11,7 @@ First, you need to update the firmware on the SoC:
 Next, install and run [Arduino](https://www.arduino.cc/en/software). In Preferences, add
 
     https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
-	
+
 and install "Seeed SAMD Boards". Copy the content of [library-package](library-package) in the libraries folder of your Arduino folder (in Documents or "My Documents").
 
 Open [sensorterminal-quickstart.ino](sensorterminal-quickstart.ino) from this repo. Set all parameters in Tools according to this screenshot (serial port might be different, or course) and hit play.
@@ -32,7 +32,19 @@ As you cannot directly connect to Infinimesh from the sensor terminal yet (group
 
 ![](nodered.png)
 
-Change the MQTT settings in your sketch to your Node-RED, uncomment the two blocks saying *UNCOMMENT HERE TO CONNECT TO MQTT SERVER* and hit play, you should be sending your light value into Infinimesh!
+Change the MQTT settings in your sketch to your Node-RED, uncomment the line
+
+    #define INFINIMESH
+
+and hit play, you should be sending your light value into Infinimesh!
+
+## Connecting additional sensors using I2C
+
+The example contains code for a BME680 environmental sensor connected to the left Grove port of the unit. Uncomment
+
+    #define BME680SENSOR
+
+to read out the sensor, display its values on the screen and send them to the MQTT server.
 
 Happy hacking!
 

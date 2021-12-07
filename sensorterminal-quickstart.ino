@@ -1,6 +1,9 @@
 /*
  *  Infinite Devices Sensor Terminal QuickStart
  */
+//#define INFINIMESH            // Connect to Infinimesh?
+//#define BME680SENSOR          // Environmental sensor present?
+
 
 #include "rpcWiFi.h"          // WiFi library
 #include "WiFiUdp.h"          // UDP library for NTP
@@ -12,6 +15,10 @@
 #include "Free_Fonts.h"       // Screen fonts
 //#include "LIS3DHTR.h"         // Accelerometer
 //#include "Wire.h"
+#ifdef BME680SENSOR
+  #include "Zanshin_BME680.h"
+  BME680_Class BME680;  ///< Create an instance of the BME680 class
+#endif
 
 /*
  *  WiFi Credentials for the hackathon. Change for a different network.
@@ -76,6 +83,21 @@ void setup() {
     //while(!Serial); // Wait to open Serial Monitor
     Serial.printf("RTL8720 Firmware Version: %s\n\n", rpc_system_version());
 
+#ifdef BME680SENSOR
+  while (!BME680.begin(I2C_STANDARD_MODE)) {  // Start BME680 using I2C, use first device found
+    Serial.print(F("-  Unable to find BME680. Trying again in 5 seconds.\n"));
+    delay(5000);
+  }  // of loop until device is located
+  Serial.print(F("- Setting 16x oversampling for all sensors\n"));
+  BME680.setOversampling(TemperatureSensor, Oversample16);  // Use enumerated type values
+  BME680.setOversampling(HumiditySensor, Oversample16);     // Use enumerated type values
+  BME680.setOversampling(PressureSensor, Oversample16);     // Use enumerated type values
+  Serial.print(F("- Setting IIR filter to a value of 4 samples\n"));
+  BME680.setIIRFilter(IIR4);  // Use enumerated type values
+  Serial.print(F("- Setting gas measurement to 320\xC2\xB0\x43 for 150ms\n"));  // "�C" symbols
+  BME680.setGas(320, 150);  // 320�c for 150 milliseconds
+#endif
+
     // setup network before rtc check 
     connectToWiFi(ssid, password);
  
@@ -109,11 +131,13 @@ void setup() {
     Serial.print("Adjusted RTC (boot) time is: ");
     Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
 
-    
-	mqtt.setServer(server, 1883);
-    mqtt.connect(ID);
-    Serial.println("Connected to MQTT broker.");
-    
+
+#ifdef INFINIMESH
+  mqtt.setServer(server, 1883);
+  mqtt.connect(ID);
+  Serial.println("Connected to MQTT broker.");
+#endif 
+
     // start millisdelays timers as required, adjust to suit requirements
     updateDelay.start(60 * 60 * 1000); // update time via ntp every hr
     loopDelay.start(1000); // Draw the display every second
@@ -123,7 +147,8 @@ void setup() {
  
 void loop() {
   float x_values, y_values, z_values;
- 
+  static int32_t  temp, humidity, pressure, gas;  // BME readings
+
     if (updateDelay.justFinished()) {
         updateDelay.repeat();
  
@@ -156,14 +181,22 @@ void loop() {
       int light = light1 + light2 + light3 + light4 + light5;
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_DATE), 0, 0);
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 57, 37);
-      tft.drawString("Light: " + String(light), 0, 74);
+      tft.drawString("Lght:" + String(light), 0, 74);
+#ifdef BME680SENSOR
+    BME680.getSensorData(temp, humidity, pressure, gas);  // Get readings
+#endif
+      tft.drawString("Temp:" + String(temp/100), 0, 113);
+      tft.drawString("Humi:" + String(humidity/1000), 0, 150);
+      tft.drawString("Pres:" + String(pressure), 0, 187);
       /*x_values = lis.getAccelerationX();
       y_values = lis.getAccelerationY();
       z_values = lis.getAccelerationZ();
       String data="{\"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";*/
-      
-	  String data = "{\"light\": " + String(light) + "}";
+
+      String data = "{\"light\": " + String(light) + "}";
+#ifdef INFINIMESH
       mqtt.publish(TOPIC, data.c_str());
+#endif
     }
 }
  
