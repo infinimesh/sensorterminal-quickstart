@@ -1,9 +1,10 @@
 /*
  *  Infinite Devices Sensor Terminal QuickStart
+ *
+ *  Please edit Configuration.h to set up for you environment!
  */
-//#define INFINIMESH            // Connect to Infinimesh?
-//#define BME680SENSOR          // Environmental sensor present?
 
+#include "Configuration.h"
 
 #include "rpcWiFi.h"          // WiFi library
 #include "WiFiUdp.h"          // UDP library for NTP
@@ -19,22 +20,6 @@
   #include "Zanshin_BME680.h"
   BME680_Class BME680;  ///< Create an instance of the BME680 class
 #endif
-
-/*
- *  WiFi Credentials for the hackathon. Change for a different network.
- */
-
-const char ssid[] = "IoTHackathon";
-const char password[] = "IwantInfinimesh!";
-
-/* 
- *  MQTT settings
- */
-
-const char *ID = "0x59";              // Name of our device, must be unique
-const char *TOPIC = "data";           // Topic to subcribe to
-const char *server = "192.168.1.154"; // Server address
-
 
 TFT_eSPI tft;
 
