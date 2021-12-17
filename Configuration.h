@@ -9,8 +9,8 @@
  *  WiFi Credentials for the hackathon. Change for a different network.
  */
 
-const char ssid[] = "IoTHackathon";
-const char password[] = "IwantInfinimesh!";
+const char ssid[] = "WG K16 neu";
+const char password[] = "WaldFee!";
 
 /* 
  *  MQTT settings

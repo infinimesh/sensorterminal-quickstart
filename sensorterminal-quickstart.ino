@@ -63,6 +63,7 @@ void setup() {
     lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g */
     
     pinMode(WIO_LIGHT, INPUT);
+    pinMode(WIO_MIC, INPUT);
     
     Serial.begin(115200);
     //while(!Serial); // Wait to open Serial Monitor
@@ -156,23 +157,26 @@ void loop() {
     if (loopDelay.justFinished()) {
       loopDelay.restart();
       tft.fillScreen(TFT_BLACK);
-      tft.setFreeFont(FM24);
+      tft.setFreeFont(FM12);
       now = rtc.now();
-      int light1 = analogRead(WIO_LIGHT);
-      int light2 = analogRead(WIO_LIGHT);
-      int light3 = analogRead(WIO_LIGHT);
-      int light4 = analogRead(WIO_LIGHT);
-      int light5 = analogRead(WIO_LIGHT);
-      int light = light1 + light2 + light3 + light4 + light5;
+      int light = 0;
+      int noise = 0;
+      for (int i = 0; i < 10; i++) {
+        light += analogRead(WIO_LIGHT);
+        noise += abs((signed int)analogRead(WIO_MIC)-430); // About 430 is the DC bias of the mic in the Terminal I tested on
+      }
+      light /= 10;
+      noise /= 10;
       tft.drawString(now.timestamp(DateTime::TIMESTAMP_DATE), 0, 0);
-      tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 57, 37);
-      tft.drawString("Lght:" + String(light), 0, 74);
+      tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 180, 0);
+      tft.drawString("Lght:" + String(light), 0, 60);
+      tft.drawString("Nois:" + String(noise), 160, 60);
 #ifdef BME680SENSOR
-    BME680.getSensorData(temp, humidity, pressure, gas);  // Get readings
-#endif
+      BME680.getSensorData(temp, humidity, pressure, gas);  // Get readings
       tft.drawString("Temp:" + String(temp/100), 0, 113);
       tft.drawString("Humi:" + String(humidity/1000), 0, 150);
       tft.drawString("Pres:" + String(pressure), 0, 187);
+#endif
       /*x_values = lis.getAccelerationX();
       y_values = lis.getAccelerationY();
       z_values = lis.getAccelerationZ();
