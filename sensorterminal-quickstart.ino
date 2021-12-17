@@ -56,31 +56,31 @@ void setup() {
     /*lis.begin(Wire1);
  
     if (!lis) {
-      Serial.println("ERROR initializing accelerometer!");
+      tft.println("ERROR initializing accelerometer!");
       while(1);
     }
     lis.setOutputDataRate(LIS3DHTR_DATARATE_1HZ); //Data output rate
     lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g */
-    
+
+    tft.begin();
+    tft.setRotation(3);
+    tft.fillScreen(TFT_BLACK);
     pinMode(WIO_LIGHT, INPUT);
     pinMode(WIO_MIC, INPUT);
-    
-    Serial.begin(115200);
-    //while(!Serial); // Wait to open Serial Monitor
-    Serial.printf("RTL8720 Firmware Version: %s\n\n", rpc_system_version());
+    tft.printf("RTL8720 Firmware Version: %s\n\n", rpc_system_version());
 
 #ifdef BME680SENSOR
   while (!BME680.begin(I2C_STANDARD_MODE)) {  // Start BME680 using I2C, use first device found
-    Serial.print(F("-  Unable to find BME680. Trying again in 5 seconds.\n"));
+    tft.print(F("-  Unable to find BME680. Trying again in 5 seconds.\n"));
     delay(5000);
   }  // of loop until device is located
-  Serial.print(F("- Setting 16x oversampling for all sensors\n"));
+  tft.print(F("- Setting 16x oversampling for all sensors\n"));
   BME680.setOversampling(TemperatureSensor, Oversample16);  // Use enumerated type values
   BME680.setOversampling(HumiditySensor, Oversample16);     // Use enumerated type values
   BME680.setOversampling(PressureSensor, Oversample16);     // Use enumerated type values
-  Serial.print(F("- Setting IIR filter to a value of 4 samples\n"));
+  tft.print(F("- Setting IIR filter to a value of 4 samples\n"));
   BME680.setIIRFilter(IIR4);  // Use enumerated type values
-  Serial.print(F("- Setting gas measurement to 320\xC2\xB0\x43 for 150ms\n"));  // "�C" symbols
+  tft.print(F("- Setting gas measurement to 320\xC2\xB0\x43 for 150ms\n"));  // "�C" symbols
   BME680.setGas(320, 150);  // 320�c for 150 milliseconds
 #endif
 
@@ -94,41 +94,39 @@ void setup() {
  
     // check if rtc present
     if (devicetime == 0) {
-        Serial.println("Failed to get time from network time server.");
+        tft.println("Failed to get time from network time server.");
     }
  
     if (!rtc.begin()) {
-        Serial.println("Couldn't find RTC");
+        tft.println("Couldn't find RTC");
         while (1) delay(10); // stop operating
     }
  
     // get and print the current rtc time
     now = rtc.now();
-    Serial.print("RTC time is: ");
-    Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
+    tft.print("RTC time is: ");
+    tft.println(now.timestamp(DateTime::TIMESTAMP_FULL));
  
     // adjust time using ntp time
     rtc.adjust(DateTime(devicetime));
  
     // print boot update details
-    Serial.println("RTC (boot) time updated.");
+    tft.println("RTC (boot) time updated.");
     // get and print the adjusted rtc time
     now = rtc.now();
-    Serial.print("Adjusted RTC (boot) time is: ");
-    Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
+    tft.print("Adjusted RTC (boot) time is: ");
+    tft.println(now.timestamp(DateTime::TIMESTAMP_FULL));
 
 
 #ifdef INFINIMESH
   mqtt.setServer(server, 1883);
   mqtt.connect(ID);
-  Serial.println("Connected to MQTT broker.");
+  tft.println("Connected to MQTT broker.");
 #endif 
 
     // start millisdelays timers as required, adjust to suit requirements
     updateDelay.start(60 * 60 * 1000); // update time via ntp every hr
     loopDelay.start(1000); // Draw the display every second
-    tft.begin();
-    tft.setRotation(3);
 }
  
 void loop() {
@@ -141,16 +139,16 @@ void loop() {
         // update rtc time
         devicetime = getNTPtime();
         if (devicetime == 0) {
-            Serial.println("Failed to get time from network time server.");
+            tft.println("Failed to get time from network time server.");
         }
         else {
             rtc.adjust(DateTime(devicetime));
-            Serial.println("");
-            Serial.println("rtc time updated.");
+            tft.println("");
+            tft.println("rtc time updated.");
             // get and print the adjusted rtc time
             now = rtc.now();
-            Serial.print("Adjusted RTC time is: ");
-            Serial.println(now.timestamp(DateTime::TIMESTAMP_FULL));
+            tft.print("Adjusted RTC time is: ");
+            tft.println(now.timestamp(DateTime::TIMESTAMP_FULL));
         }
     }
     
@@ -191,12 +189,12 @@ void loop() {
  
  
 void connectToWiFi(const char* ssid, const char* pwd) {
-    Serial.println("Connecting to WiFi network: " + String(ssid));
+    tft.println("Connecting to WiFi network: " + String(ssid));
  
     // delete old config
     WiFi.disconnect(true);
  
-    Serial.println("Waiting for WIFI connection...");
+    tft.println("Waiting for WIFI connection...");
  
     //Initiate connection
     WiFi.begin(ssid, pwd);
@@ -205,7 +203,7 @@ void connectToWiFi(const char* ssid, const char* pwd) {
         WiFi.begin(ssid, pwd);
         delay(500);
     }
-    Serial.println("Connected.");
+    tft.println("Connected.");
     printWifiStatus();
  
 }
@@ -226,8 +224,8 @@ unsigned long getNTPtime() {
         delay(1000);
  
         if (udp.parsePacket()) {
-            Serial.println("udp packet received");
-            Serial.println("");
+            tft.println("udp packet received");
+            tft.println("");
             // We've received a packet, read the data from it
             udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
  
@@ -297,19 +295,19 @@ unsigned long sendNTPpacket(const char* address) {
  
 void printWifiStatus() {
     // print the SSID of the network you're attached to:
-    Serial.println("");
-    Serial.print("SSID: ");
-    Serial.println(WiFi.SSID());
+    tft.println("");
+    tft.print("SSID: ");
+    tft.println(WiFi.SSID());
  
     // print your WiFi shield's IP address:
     IPAddress ip = WiFi.localIP();
-    Serial.print("IP Address: ");
-    Serial.println(ip);
+    tft.print("IP Address: ");
+    tft.println(ip);
  
     // print the received signal strength:
     long rssi = WiFi.RSSI();
-    Serial.print("signal strength (RSSI):");
-    Serial.print(rssi);
-    Serial.println(" dBm");
-    Serial.println("");
+    tft.print("signal strength (RSSI):");
+    tft.print(rssi);
+    tft.println(" dBm");
+    tft.println("");
 }

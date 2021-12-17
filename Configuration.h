@@ -6,11 +6,11 @@
 //#define BME680SENSOR          // Environmental sensor present?
 
 /*
- *  WiFi Credentials for the hackathon. Change for a different network.
+ *  WiFi Credentials.
  */
 
-const char ssid[] = "WG K16 neu";
-const char password[] = "WaldFee!";
+const char ssid[] = "";
+const char password[] = "";
 
 /* 
  *  MQTT settings
