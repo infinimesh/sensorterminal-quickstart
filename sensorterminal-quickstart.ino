@@ -14,8 +14,8 @@
 #include "RTC_SAMD51.h"       // Real time clock library
 #include "TFT_eSPI.h"         // TFT library
 #include "Free_Fonts.h"       // Screen fonts
-//#include "LIS3DHTR.h"         // Accelerometer
-//#include "Wire.h"
+#include "LIS3DHTR.h"         // Accelerometer
+#include "Wire.h"
 #ifdef BME680SENSOR
   #include "Zanshin_BME680.h"
   BME680_Class BME680;  ///< Create an instance of the BME680 class
@@ -23,7 +23,7 @@
 
 TFT_eSPI tft;
 
-//LIS3DHTR<TwoWire> lis;
+LIS3DHTR<TwoWire> lis;
 
 millisDelay updateDelay;                // The update delay object used for ntp periodic update.
 millisDelay loopDelay;                  // This timer is to redraw the screen only once per second.
@@ -53,14 +53,14 @@ RTC_SAMD51 rtc;
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 void setup() {
-    /*lis.begin(Wire1);
+    lis.begin(Wire1);
  
     if (!lis) {
       tft.println("ERROR initializing accelerometer!");
       while(1);
     }
     lis.setOutputDataRate(LIS3DHTR_DATARATE_1HZ); //Data output rate
-    lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g */
+    lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g
 
     tft.begin();
     tft.setRotation(3);
@@ -175,12 +175,14 @@ void loop() {
       tft.drawString("Humi:" + String(humidity/1000), 0, 150);
       tft.drawString("Pres:" + String(pressure), 0, 187);
 #endif
-      /*x_values = lis.getAccelerationX();
+      x_values = lis.getAccelerationX();
+      tft.drawString("x:" + String(x_values), 0, 80);
       y_values = lis.getAccelerationY();
+      tft.drawString("y:" + String(y_values), 106, 80);
       z_values = lis.getAccelerationZ();
-      String data="{\"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";*/
+      tft.drawString("z:" + String(z_values), 212, 80);
+      String data="{\"light\": " + String(light) + ", \"noise\": " + String(noise) + ", \"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";
 
-      String data = "{\"light\": " + String(light) + "}";
 #ifdef INFINIMESH
       mqtt.publish(TOPIC, data.c_str());
 #endif
