@@ -48,25 +48,30 @@ WiFiUDP udp;
 unsigned long devicetime;
  
 RTC_SAMD51 rtc;
+
+int userstate = 0;
  
 // for use by the Adafuit RTClib library
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 void setup() {
-    lis.begin(Wire1);
+  lis.begin(Wire1);
  
-    if (!lis) {
-      tft.println("ERROR initializing accelerometer!");
-      while(1);
-    }
-    lis.setOutputDataRate(LIS3DHTR_DATARATE_1HZ); //Data output rate
-    lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g
+  if (!lis) {
+    tft.println("ERROR initializing accelerometer!");
+    while(1);
+  }
+  lis.setOutputDataRate(LIS3DHTR_DATARATE_1HZ); //Data output rate
+  lis.setFullScaleRange(LIS3DHTR_RANGE_2G); //Scale range set to 2g
 
-    tft.begin();
-    tft.setRotation(3);
-    tft.fillScreen(TFT_BLACK);
-    pinMode(WIO_LIGHT, INPUT);
-    pinMode(WIO_MIC, INPUT);
+  tft.begin();
+  tft.setRotation(3);
+  tft.fillScreen(TFT_BLACK);
+  pinMode(WIO_LIGHT, INPUT);
+  pinMode(WIO_MIC, INPUT);
+  pinMode(WIO_KEY_A, INPUT_PULLUP);
+  pinMode(WIO_KEY_B, INPUT_PULLUP);
+  pinMode(WIO_KEY_C, INPUT_PULLUP);
     tft.printf("RTL8720 Firmware Version: %s\n\n", rpc_system_version());
 
 #ifdef BME680SENSOR
@@ -154,6 +159,15 @@ void loop() {
     
     if (loopDelay.justFinished()) {
       loopDelay.restart();
+      if (digitalRead(WIO_KEY_C) == LOW) {
+        userstate = 0;
+      }
+      if (digitalRead(WIO_KEY_B) == LOW) {
+        userstate = 1;
+      }
+      if (digitalRead(WIO_KEY_A) == LOW) {
+        userstate = 2;
+      }
       tft.fillScreen(TFT_BLACK);
       tft.setFreeFont(FM12);
       now = rtc.now();
@@ -165,8 +179,16 @@ void loop() {
       }
       light /= 10;
       noise /= 10;
-      tft.drawString(now.timestamp(DateTime::TIMESTAMP_DATE), 0, 0);
-      tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 180, 0);
+      for (int i = 0; i < 3; i++) {
+        if (userstate == i) {
+          tft.drawString("x", i*80, 0);
+        } else {
+          tft.drawString("o", i*80, 0);
+        }
+      }
+      tft.drawString(button[userstate], 180, 0);
+      tft.drawString(now.timestamp(DateTime::TIMESTAMP_DATE), 0, 20);
+      tft.drawString(now.timestamp(DateTime::TIMESTAMP_TIME), 180, 20);
       tft.drawString("Lght:" + String(light), 0, 60);
       tft.drawString("Nois:" + String(noise), 160, 60);
 #ifdef BME680SENSOR
@@ -181,7 +203,7 @@ void loop() {
       tft.drawString("y:" + String(y_values), 106, 80);
       z_values = lis.getAccelerationZ();
       tft.drawString("z:" + String(z_values), 212, 80);
-      String data="{\"light\": " + String(light) + ", \"noise\": " + String(noise) + ", \"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+"}";
+      String data="{\"light\": " + String(light) + ", \"noise\": " + String(noise) + ", \"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+", \"userstate\": \"" + button[userstate] + "\"}";
 
 #ifdef INFINIMESH
       mqtt.publish(TOPIC, data.c_str());
