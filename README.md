@@ -22,13 +22,27 @@ Your Sensor-Terminal should show the time after getting it from the Internet. Fo
 
 ## Infinimesh
 
+Together with your Sensor-Terminal, you have received a login for the Infinimesh platform. First, create a new namespace, as you cannot create devices in your root namespace. Then, in the new namespace, create a device, give it a name and set it to enabled. At the moment, you have to provide a public cert even though we're not going to use it. See "old way" below on how to create it.
+
+Click on the device and on "MQTT Basic Auth" under "Actions". In the popup, click "Enable". Copy the password.
+
+In Arduino, in the tab Configuration.h, uncomment the line
+
+    #define INFINIMESH
+
+and enter your Wifi credentials, enter the device's ID into the TOPIC, change user to your device's name and password to the password you just copied. Hit play. The data from the Sensor-Terminal should appear in Infinimesh.
+
+## Old way of connecting to Infinimesh
+
+This is the way of connecting to Infinimesh over SSL authentication. As the Sensor-Terminal cannot do that yet, you need to use a proxy like [Node-RED](https://nodered.org/#get-started) to receive the MQTT messages from the Sensor-Terminal and send them on to Infinimesh.
+
 Together with your Sensor-Terminal, you have received a login for the Infinimesh platform. To create your device in Infinimesh, you first need to create a device certificate. Run
 
     bash create-certs.sh device
 
 to generate device.crt and device.key. Login to [Infinimesh](https://console.infinimesh.app/), click on the + button, give the device a name (e.g. "Terminal_40"), select your namespace, set the device to enabled and upload the device.crt file. (The device.key file is the private key, don't give it away!) Click submit and the device is created and given an id (hex number like 0x59). 
 
-As you cannot directly connect to Infinimesh from the sensor terminal yet (group 3 will be working on that), you will need to install [Node-RED](https://nodered.org/#get-started) to receive the MQTT messages from the Sensor-Terminal and send them on to Infinimesh. Here's a working setup, change the device ID to yours:
+Here's a working setup for Node-RED, change the device ID to yours:
 
 ![](nodered.png)
 

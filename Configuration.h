@@ -2,7 +2,7 @@
  * Uncomment these to add features!
  */
  
-#define INFINIMESH            // Connect to Infinimesh?
+//#define INFINIMESH            // Connect to Infinimesh?
 //#define BME680SENSOR          // Environmental sensor present?
 
 /*
@@ -14,13 +14,14 @@ const char *button[] = {"undefined", "good", "bad"};
  *  WiFi Credentials
  */
 
-const char ssid[] = "";
-const char password[] = "";
+const char ssid[] = "XXXXXXXXXX";
+const char psk[] = "XXXXXXXXXX";
 
 /* 
  *  MQTT settings
  */
 
-const char *ID = "st35";              // Name of our device, must be unique
-const char *TOPIC = "data";           // Topic to subcribe to
-const char *server = "178.254.29.197"; // Server address
+const char *TOPIC = "devices/0xXX/state/reported/delta";  // Topic to subcribe to
+const char *user = "stXX";            // MQTT basic auth
+const char *password ="XXXXXXXXXXXXXXXXXXXXXXX";
+const char *server = "mqtt.api.infinimesh.dev"; // Server address

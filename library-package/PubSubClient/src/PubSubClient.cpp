@@ -265,7 +265,7 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
             uint8_t llen;
             uint32_t len = readPacket(&llen);
 
-            if (len == 4) {
+            if (len >= 4) {
                 if (buffer[3] == 0) {
                     lastInActivity = millis();
                     pingOutstanding = false;
@@ -320,12 +320,12 @@ uint32_t PubSubClient::readPacket(uint8_t* lengthLength) {
     uint32_t start = 0;
 
     do {
-        if (len == 5) {
+        /*if (len == 5) {
             // Invalid remaining length encoding - kill the connection
             _state = MQTT_DISCONNECTED;
             _client->stop();
             return 0;
-        }
+        }*/
         if(!readByte(&digit)) return 0;
         this->buffer[len++] = digit;
         length += (digit & 127) * multiplier;

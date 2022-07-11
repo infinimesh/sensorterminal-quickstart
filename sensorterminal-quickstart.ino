@@ -125,8 +125,31 @@ void setup() {
 
 #ifdef INFINIMESH
   mqtt.setServer(server, 1883);
-  mqtt.connect(ID);
-  tft.println("Connected to MQTT broker.");
+  while (!mqtt.connected()) {
+    tft.println("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = "sensorterminal-";
+    clientId += String(random(0xffff), HEX);
+    // Attempt to connect
+    if (mqtt.connect(clientId.c_str(), user, password)) {
+      tft.println("connected");
+    } else {
+      tft.print("failed, rc=");
+      tft.print(mqtt.state());
+      tft.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+  
+  /*if (mqtt.connect(ID, user, password)) {
+    tft.println("Connected to MQTT broker.");
+  } else {
+        tft.print("Connection to ");
+        tft.print(server);
+        tft.println(" failed.");
+
+  }*/
 #endif 
 
     // start millisdelays timers as required, adjust to suit requirements
@@ -193,9 +216,10 @@ void loop() {
       tft.drawString("Nois:" + String(noise), 160, 60);
 #ifdef BME680SENSOR
       BME680.getSensorData(temp, humidity, pressure, gas);  // Get readings
-      tft.drawString("Temp:" + String(temp/100), 0, 113);
-      tft.drawString("Humi:" + String(humidity/1000), 0, 150);
-      tft.drawString("Pres:" + String(pressure), 0, 187);
+      tft.drawString("Temp:" + String(temp/100), 0, 100);
+      tft.drawString("Humi:" + String(humidity/1000), 0, 120);
+      tft.drawString("Pres:" + String(pressure), 0, 140);
+      tft.drawString("Gas:" + String(gas), 0, 160);
 #endif
       x_values = lis.getAccelerationX();
       tft.drawString("x:" + String(x_values), 0, 80);
@@ -203,7 +227,11 @@ void loop() {
       tft.drawString("y:" + String(y_values), 106, 80);
       z_values = lis.getAccelerationZ();
       tft.drawString("z:" + String(z_values), 212, 80);
-      String data="{\"light\": " + String(light) + ", \"noise\": " + String(noise) + ", \"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+", \"userstate\": \"" + button[userstate] + "\"}";
+      String data="{\"light\": " + String(light) + ", \"noise\": " + String(noise) + ", \"accx\": "+String(x_values)+", \"accy\": "+String(y_values)+", \"accz\": "+String(z_values)+", \"userstate\": \"" + button[userstate] + "\"";
+#ifdef BME680SENSOR
+      data = data + ", \"temp\": " + String(temp) + ", \"humi\": " + String(humidity) + ", \"pres\": "+String(pressure)+", \"gas\": "+String(gas);
+#endif
+      data = data + "}";
 
 #ifdef INFINIMESH
       mqtt.publish(TOPIC, data.c_str());
@@ -221,10 +249,10 @@ void connectToWiFi(const char* ssid, const char* pwd) {
     tft.println("Waiting for WIFI connection...");
  
     //Initiate connection
-    WiFi.begin(ssid, pwd);
+    WiFi.begin(ssid, psk);
  
     while (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin(ssid, pwd);
+        WiFi.begin(ssid, psk);
         delay(500);
     }
     tft.println("Connected.");
